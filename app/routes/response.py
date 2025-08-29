@@ -58,3 +58,60 @@ def create_response():
     db.session.commit()
 
     return jsonify({'message': f"Ответ на вопрос {question.id} добавлен"}), 201
+
+@response_bp.route('/<int:response_id>', methods=['PUT'])
+def update_response(response_id: int):
+    """
+    Updates an existing response without a separate Pydantic model
+    """
+    response = Response.query.get(response_id)
+    if not response:
+        return jsonify({'message': "Ответ не найден"}), 404
+
+    data = request.get_json()
+    if not data or 'is_agree' not in data:
+        return jsonify({'message': "Поле 'is_agree' обязательно"}), 400
+
+    if not isinstance(data['is_agree'], bool):
+        return jsonify({'message': "Поле 'is_agree' должно быть bool"}), 400
+
+    # Update statistics counts
+    statistic = Statistic.query.filter_by(question_id=response.question_id).first()
+    if statistic:
+        if response.is_agree:
+            statistic.agree_count -= 1
+        else:
+            statistic.disagree_count -= 1
+
+        if data['is_agree']:
+            statistic.agree_count += 1
+        else:
+            statistic.disagree_count += 1
+
+    # Обновляем ответ
+    response.is_agree = data['is_agree']
+    db.session.commit()
+
+    return jsonify({'message': f"Ответ {response_id} обновлён"}), 200
+
+
+@response_bp.route('/<int:response_id>', methods=['DELETE'])
+def delete_response(response_id: int):
+    """
+    Deletes an existing response
+    """
+    response = Response.query.get(response_id)
+    if not response:
+        return jsonify({'message': "Ответ не найден"}), 404
+
+    statistic = Statistic.query.filter_by(question_id=response.question_id).first()
+    if statistic:
+        if response.is_agree:
+            statistic.agree_count -= 1
+        else:
+            statistic.disagree_count -= 1
+
+    db.session.delete(response)
+    db.session.commit()
+
+    return jsonify({'message': f"Ответ {response_id} удалён"}), 200

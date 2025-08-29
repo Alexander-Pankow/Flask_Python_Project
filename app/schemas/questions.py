@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-
+from app.schemas.category import CategoryResponse
 
 
 class CategoryBase(BaseModel):
@@ -12,7 +12,7 @@ class QuestionCreate(BaseModel):
 class QuestionResponse(BaseModel):
     id: int
     question: str = Field(..., min_length=10, max_length=100)
-    category: str = Field(..., min_length=10, max_length=100)
+    category: CategoryResponse = Field(...)
 
     model_config = ConfigDict(
         from_attributes=True

@@ -9,21 +9,21 @@ categories_bp = Blueprint("categories", __name__, url_prefix="/categories")
 @categories_bp.route("/", methods=["POST"])
 def create_category():
     try:
-        data = CategoryBase(**request.get_json())
+        data = CategoryBase.model_validate(request.get_json())
     except ValidationError as e:
-        return jsonify(e.errors()), 400
+        return jsonify(e.model_dump_json()), 400
 
     category = Category(name=data.name)
     db.session.add(category)
     db.session.commit()
 
-    return jsonify(CategoryResponse.from_orm(category).dict()), 201
+    return jsonify(CategoryResponse.from_orm(category).model_dump()), 201
 
 
 @categories_bp.route("/", methods=["GET"])
 def get_categories():
     categories = Category.query.all()
-    return jsonify([CategoryResponse.from_orm(cat).dict() for cat in categories]), 200
+    return jsonify([CategoryResponse.from_orm(cat).model_dump() for cat in categories]), 200
 
 
 @categories_bp.route("/<int:id>", methods=["PUT"])
@@ -33,14 +33,14 @@ def update_category(id):
         return jsonify({"message": "Категория не найдена"}), 404
 
     try:
-        data = CategoryBase(**request.get_json())
+        data = CategoryBase.model_validate(request.get_json())
     except ValidationError as e:
-        return jsonify(e.errors()), 400
+        return jsonify(e.model_dump_json()), 400
 
     category.name = data.name
     db.session.commit()
 
-    return jsonify(CategoryResponse.from_orm(category).dict()), 200
+    return jsonify(CategoryResponse.from_orm(category).model_dump()), 200
 
 
 @categories_bp.route("/<int:id>", methods=["DELETE"])

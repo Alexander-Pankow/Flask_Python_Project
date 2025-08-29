@@ -19,5 +19,6 @@ class QuestionResponse(BaseModel):
     )
 
 
+
 class MessageResponse(BaseModel):
     message: str

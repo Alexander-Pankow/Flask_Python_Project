@@ -5,7 +5,8 @@ class Question(db.Model):
     __tablename__ = 'questions'
 
     id = db.Column(db.Integer, primary_key=True)
-    question = db.Column(db.Text)
+    question = db.Column(db.String(255), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
     responses = db.relationship('Response', backref='question', lazy='dynamic')
 
     def __repr__(self):
